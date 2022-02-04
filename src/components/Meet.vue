@@ -99,6 +99,10 @@
 </template>
 <script>
 import { ethers } from "ethers";
+import Web3Modal from "web3modal";
+import WalletConnectProvider from "@walletconnect/web3-provider";
+import Torus from "@toruslabs/torus-embed";
+import WalletLink from "walletlink";
 // import axios from "axios";
 import ABI from "../assets/contract/ABI.json";
 import LoadingScreen from "./LoadingScreen.vue";
@@ -128,24 +132,48 @@ export default {
     connectWallet: async function () {
       try {
         this.loading = true;
-        // The "any" network will allow spontaneous network changes
-        this.provider = new ethers.providers.Web3Provider(
-          window.ethereum,
-          "any"
-        );
+        const infuraId = "23cf1ohT2vMJPnvg9xycCGCt7hr";
 
-        // Best practice: reload the page if the network changes
-        this.provider.on("network", (newNetwork, oldNetwork) => {
-          // When a Provider makes its initial connection, it emits a "network"
-          // event with a null oldNetwork along with the newNetwork. So, if the
-          // oldNetwork exists, it represents a changing network
-          if (oldNetwork) {
-            window.location.reload();
-          }
+        const providerOptions = {
+          walletconnect: {
+            package: WalletConnectProvider,
+            options: {
+              infuraId: infuraId,
+            },
+          },
+          torus: {
+            package: Torus,
+          },
+          walletlink: {
+            package: WalletLink,
+            options: {
+              appName: "Cryptocuban Social Club",
+              infuraId,
+            },
+          },
+        };
+
+        const web3Modal = new Web3Modal({
+          providerOptions,
         });
 
-        // Prompt user for account connections
-        await this.provider.send("eth_requestAccounts", []);
+        const instance = await web3Modal.connect();
+        if (!instance) {
+          throw new Error("No wallet selected");
+        }
+        this.provider = new ethers.providers.Web3Provider(instance);
+
+        if (instance.on) {
+          instance.on("disconnect", () => {
+            window.location.reload();
+          });
+          instance.on("accountsChanged", () => {
+            window.location.reload();
+          });
+          instance.on("chainChanged", () => {
+            window.location.reload();
+          });
+        }
         this.signer = this.provider.getSigner();
         const network = await this.provider.getNetwork();
         if (network.chainId !== 1) {
