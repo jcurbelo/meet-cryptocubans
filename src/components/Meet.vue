@@ -32,7 +32,7 @@
         <v-btn
           :disabled="loading"
           :loading="loading"
-          v-if="!user"
+          v-if="loading || !user"
           class="m-t-3 default-button button-filled"
           elevation="2"
           rounded
@@ -48,6 +48,16 @@
               <p><strong>Balance: </strong> {{ user.balance }}</p>
               <p><strong>Cryptocubans you own: </strong> {{ balanceOf }}</p>
             </div>
+            <div class="seperator-line"></div>
+            <h2>Video Links:</h2>
+            <ul class="m-5">
+              <li class="font-weight-bold" v-for="link in links" :key="link">
+                <a :href="link" target="_blank">
+                  {{ link }}
+                </a>
+              </li>
+            </ul>
+            <div class="seperator-line"></div>
             <div class="seperator-line"></div>
             <div class="seperator-line"></div>
             <v-row align="center" justify="space-around">
@@ -103,7 +113,7 @@ import Web3Modal from "web3modal";
 import WalletConnectProvider from "@walletconnect/web3-provider";
 import Torus from "@toruslabs/torus-embed";
 import WalletLink from "walletlink";
-// import axios from "axios";
+import axios from "axios";
 import ABI from "../assets/contract/ABI.json";
 import LoadingScreen from "./LoadingScreen.vue";
 
@@ -126,6 +136,7 @@ export default {
       snackbar: false,
       snackBarMsg: "",
       balanceOf: 0,
+      links: [],
     };
   },
   methods: {
@@ -209,6 +220,20 @@ export default {
 
         // Gets balance of the current address
         this.balanceOf = await this.contract.balanceOf(this.user.address);
+        const baseUrl =
+          "https://us-central1-cryptocuban-social-club.cloudfunctions.net/";
+
+        let res = await axios.get(
+          `${baseUrl}auth?address=${this.user.address}`
+        );
+        const nonce = res.data.nonce;
+
+        const signature = await this.signer.signMessage(nonce.toString());
+        res = await axios.get(
+          `${baseUrl}verify?address=${this.user.address}&signature=${signature}`
+        );
+
+        this.links = res.data;
       } catch (e) {
         this.handleError(e);
       } finally {
