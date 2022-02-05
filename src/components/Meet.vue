@@ -32,7 +32,7 @@
         <v-btn
           :disabled="loading"
           :loading="loading"
-          v-if="loading || !user"
+          v-if="!user"
           class="m-t-3 default-button button-filled"
           elevation="2"
           rounded
@@ -45,59 +45,64 @@
           <div class="col">
             <div>
               <p><strong>Address: </strong> {{ user.formattedAddress }}</p>
-              <p><strong>Balance: </strong> {{ user.balance }}</p>
-              <p><strong>Cryptocubans you own: </strong> {{ balanceOf }}</p>
+              <p><strong># Cryptocubans you own: </strong> {{ balanceOf }}</p>
             </div>
             <div class="seperator-line"></div>
-            <h2>Video Links:</h2>
-            <ul class="m-5">
-              <li class="font-weight-bold" v-for="link in links" :key="link">
-                <a :href="link" target="_blank">
-                  {{ link }}
-                </a>
-              </li>
-            </ul>
-            <div class="seperator-line"></div>
-            <div class="seperator-line"></div>
-            <div class="seperator-line"></div>
-            <v-row align="center" justify="space-around">
-              <v-col sm="12" md="4">
-                <v-btn
-                  class="default-button button-filled"
-                  elevation="2"
-                  rounded
-                  x-large
-                  :href="'https://etherscan.io/token/' + contractAddress"
-                  target="_blank"
-                >
-                  SMART CONTRACT
-                </v-btn>
-              </v-col>
-              <v-col sm="12" md="4">
-                <v-btn
-                  class="default-button button-filled"
-                  elevation="2"
-                  rounded
-                  x-large
-                  :href="'https://mint.cryptocubansocialclub.com'"
-                  target="_blank"
-                >
-                  MINT
-                </v-btn>
-              </v-col>
-              <v-col sm="12" md="4">
-                <v-btn
-                  class="default-button button-filled"
-                  elevation="2"
-                  rounded
-                  x-large
-                  :href="'https://opensea.io/collection/cryptocuban-social-club'"
-                  target="_blank"
-                >
-                  OPENSEA
-                </v-btn>
-              </v-col>
-            </v-row>
+            <v-alert color="#480058" dark dense prominent v-if="balanceOf <= 0">
+              <strong> Sorry, you don't own any Cryptocubans. </strong>
+            </v-alert>
+            <div v-else>
+              <div class="seperator-line"></div>
+              <v-row v-if="!revealed" align="center" justify="space-around">
+                <v-col sm="12" md="4">
+                  <v-btn
+                    :disabled="loading"
+                    :loading="loading"
+                    class="default-button button-filled"
+                    elevation="2"
+                    rounded
+                    x-large
+                    target="_blank"
+                    v-on:click="reveal"
+                  >
+                    REVEAL
+                  </v-btn>
+                </v-col>
+              </v-row>
+              <v-row v-else>
+                <v-col sm="12" md="4" v-for="asset in assets" :key="asset.id">
+                  <v-card class="mx-auto">
+                    <v-img
+                      :src="asset.image_original_url"
+                      max-height="200px"
+                    ></v-img>
+
+                    <v-card-title>
+                      <p style="font-size: 3rem">
+                        {{ asset.name }}
+                      </p>
+                    </v-card-title>
+
+                    <v-card-actions>
+                      <v-btn
+                        v-if="asset.video"
+                        class="default-button button-filled"
+                        :href="asset.video"
+                      >
+                        DOWNLOAD VIDEO
+                      </v-btn>
+                      <v-btn
+                        v-if="asset.permalink"
+                        class="default-button button-filled"
+                        :href="asset.permalink"
+                      >
+                        VIEW ON OPENSEA
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-col>
+              </v-row>
+            </div>
           </div>
         </div>
       </div>
@@ -135,8 +140,9 @@ export default {
       mounted: false,
       snackbar: false,
       snackBarMsg: "",
-      balanceOf: 0,
-      links: [],
+      balanceOf: 1,
+      assets: [],
+      revealed: false,
     };
   },
   methods: {
@@ -220,6 +226,16 @@ export default {
 
         // Gets balance of the current address
         this.balanceOf = await this.contract.balanceOf(this.user.address);
+      } catch (e) {
+        this.handleError(e);
+      } finally {
+        this.loading = false;
+      }
+    },
+    reveal: async function () {
+      try {
+        this.loading = true;
+
         const baseUrl =
           "https://us-central1-cryptocuban-social-club.cloudfunctions.net/";
 
@@ -233,7 +249,8 @@ export default {
           `${baseUrl}verify?address=${this.user.address}&signature=${signature}`
         );
 
-        this.links = res.data;
+        this.assets = res.data;
+        this.revealed = true;
       } catch (e) {
         this.handleError(e);
       } finally {
