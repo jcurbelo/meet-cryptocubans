@@ -73,7 +73,7 @@
                 <v-col sm="12" md="4" v-for="asset in assets" :key="asset.id">
                   <v-card class="mx-auto">
                     <v-img
-                      :src="asset.image_original_url"
+                      :src="asset.image_preview_url"
                       max-height="200px"
                     ></v-img>
 
@@ -85,18 +85,31 @@
 
                     <v-card-actions>
                       <v-btn
+                        text
+                        color="#480058"
+                        class="button-small"
                         v-if="asset.video"
-                        class="default-button button-filled"
                         :href="asset.video"
                       >
-                        DOWNLOAD VIDEO
+                        VIDEO
                       </v-btn>
                       <v-btn
+                        text
+                        color="#480058"
+                        class="button-small"
                         v-if="asset.permalink"
-                        class="default-button button-filled"
                         :href="asset.permalink"
                       >
-                        VIEW ON OPENSEA
+                        OPENSEA
+                      </v-btn>
+                      <v-btn
+                        text
+                        color="#480058"
+                        class="button-small"
+                        v-if="asset.image_original_url"
+                        :href="asset.image_original_url"
+                      >
+                        IPFS
                       </v-btn>
                     </v-card-actions>
                   </v-card>
@@ -304,6 +317,10 @@ p {
 
 p::selection {
   color: #fff;
+}
+
+.button-small {
+  font-size: 2rem !important;
 }
 
 .button-filled {
