@@ -1322,7 +1322,7 @@ select:-webkit-autofill:focus {
     top: 0;
     left: 0;
     height: 100vh;
-    overflow: hidden;
+    overflow: auto;
 }
 
 .right-content {

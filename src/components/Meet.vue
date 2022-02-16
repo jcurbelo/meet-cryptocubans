@@ -88,6 +88,7 @@
                         text
                         color="#480058"
                         class="button-small"
+                        target="_blank"
                         v-if="asset.video"
                         :href="asset.video"
                       >
@@ -97,6 +98,7 @@
                         text
                         color="#480058"
                         class="button-small"
+                        target="_blank"
                         v-if="asset.permalink"
                         :href="asset.permalink"
                       >
@@ -106,6 +108,7 @@
                         text
                         color="#480058"
                         class="button-small"
+                        target="_blank"
                         v-if="asset.image_original_url"
                         :href="asset.image_original_url"
                       >
