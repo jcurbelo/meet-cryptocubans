@@ -19,6 +19,16 @@
       </template>
     </v-snackbar>
 
+    <v-dialog v-model="videoDialog" width="640">
+      <iframe
+        v-if="videoDialog && video"
+        :src="video"
+        width="640"
+        height="480"
+        allow="autoplay"
+      ></iframe>
+    </v-dialog>
+
     <div
       class="section height-100 y-center"
       style="padding-bottom: 2rem; padding-right: 2rem; margin-top: 20rem"
@@ -90,7 +100,10 @@
                         class="button-small"
                         target="_blank"
                         v-if="asset.video"
-                        :href="asset.video"
+                        @click="
+                          videoDialog = true;
+                          video = asset.video;
+                        "
                       >
                         VIDEO
                       </v-btn>
@@ -179,6 +192,8 @@ export default {
       balanceOf: 1,
       assets: [],
       revealed: false,
+      videoDialog: false,
+      video: null,
     };
   },
   methods: {
@@ -304,6 +319,12 @@ export default {
         );
 
         this.assets = res.data;
+        // itereates through the assets and formats the balance to be in ether
+        this.assets.forEach((asset) => {
+          if (asset.video) {
+            asset.video = asset.video.replace("/view?usp=drivesdk", "/preview");
+          }
+        });
         this.revealed = true;
       } catch (e) {
         this.handleError(e);
