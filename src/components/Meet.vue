@@ -137,6 +137,26 @@ import WalletLink from "walletlink";
 import axios from "axios";
 import ABI from "../assets/contract/ABI.json";
 import LoadingScreen from "./LoadingScreen.vue";
+import METAMASK_BASE64 from "../assets/config/logos";
+
+const isMobile = () => {
+  return deviceType() !== "desktop";
+};
+
+const deviceType = () => {
+  const ua = navigator.userAgent;
+  if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) {
+    return "tablet";
+  }
+  if (
+    /Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(
+      ua
+    )
+  ) {
+    return "mobile";
+  }
+  return "desktop";
+};
 
 export default {
   name: "Meet",
@@ -151,7 +171,7 @@ export default {
       signer: null,
       contract: null,
       abi: ABI.abi,
-      contractAddress: "0xca9eE3460D84Eac6C2F2284CFe3E3B35A2267d78", // Replace it with your contract address,
+      contractAddress: "0xca9eE3460D84Eac6C2F2284CFe3E3B35A2267d78",
       loading: false,
       mounted: false,
       snackbar: false,
@@ -167,7 +187,7 @@ export default {
         this.loading = true;
         const infuraId = "23cf1ohT2vMJPnvg9xycCGCt7hr";
 
-        const providerOptions = {
+        let providerOptions = {
           walletconnect: {
             package: WalletConnectProvider,
             options: {
@@ -185,6 +205,24 @@ export default {
             },
           },
         };
+
+        if (isMobile()) {
+          providerOptions = {
+            ...providerOptions,
+            "custom-metamask": {
+              display: {
+                logo: METAMASK_BASE64,
+                name: "MetaMask",
+                description: "Connect to your MetaMask Wallet",
+              },
+              package: true,
+              connector: () => {
+                const url = `${window.location.origin}${window.location.pathname}`;
+                window.location.href = `https://metamask.app.link/dapp/${url}`;
+              },
+            },
+          };
+        }
 
         const web3Modal = new Web3Modal({
           providerOptions,
