@@ -150,7 +150,7 @@ import WalletLink from "walletlink";
 import axios from "axios";
 import ABI from "../assets/contract/ABI.json";
 import LoadingScreen from "./LoadingScreen.vue";
-import METAMASK_BASE64 from "../assets/config/logos";
+import { METAMASK_BASE64 } from "../assets/config/logos";
 
 const isMobile = () => {
   return deviceType() !== "desktop";
